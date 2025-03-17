@@ -1,106 +1,230 @@
-let currentSale = {
-    customer: null,
-    products: [],
-    total: 0
-};
+document.addEventListener("DOMContentLoaded", () => {
+    const btnIniciarVenta = document.getElementById("iniciarVenta")
+    const modalVenta = new bootstrap.Modal(document.getElementById("modalVenta"))
+    const btnCerrarModal = document.getElementById("cerrarModal")
+    const btnCancelarVenta = document.getElementById("cancelarVenta")
+    const inputBuscarProducto = document.getElementById("buscarProducto")
+    const btnBuscar = document.getElementById("buscar")
+    const listaProductos = document.getElementById("listaProductos")
+    const listaSeleccionados = document.getElementById("listaSeleccionados")
+    const totalVenta = document.getElementById("totalVenta")
+    const btnConfirmarVenta = document.getElementById("confirmarVenta")
+    const selectCliente = document.getElementById("cliente")
 
-document.addEventListener("DOMContentLoaded", function () {
-    document.getElementById("startSaleButton").addEventListener("click", toggleSaleForm);
-    document.getElementById("productSearch").addEventListener("input", filterSaleProducts);
-    document.getElementById("customerSelect").addEventListener("change", selectCustomer);
-    document.getElementById("confirmSaleButton").addEventListener("click", confirmSale);
-});
+    let productosSeleccionados = []
 
-function toggleSaleForm() {
-    let saleCard = document.getElementById("saleCard");
-    saleCard.classList.toggle("d-none");
-    if (!saleCard.classList.contains("d-none")) {
-        resetSale();
-    }
-}
-
-function filterSaleProducts() {
-    let input = document.getElementById("productSearch").value.toLowerCase();
-    fetch(`/products/search?name=${input}`)
-        .then(response => response.json())
-        .then(products => {
-            let list = document.getElementById("productList");
-            list.innerHTML = "";
-            products.forEach(product => {
-                let row = `<tr>
-                    <td>${product.name}</td>
-                    <td>${product.salePrice}</td>
-                    <td>
-                        <input type='number' min='1' max='${product.stock}' value='1' id='qty-${product.id}'>
-                        <button class="btn btn-primary btn-sm" onclick="addProductToSale(${product.id}, '${product.name}', ${product.salePrice})">Añadir</button>
-                    </td>
-                </tr>`;
-                list.innerHTML += row;
-            });
-        });
-}
-
-function addProductToSale(id, name, price) {
-    let quantity = parseInt(document.getElementById(`qty-${id}`).value);
-    if (isNaN(quantity) || quantity <= 0) return;
-
-    let existingProduct = currentSale.products.find(p => p.id === id);
-    if (existingProduct) {
-        existingProduct.quantity += quantity;
-    } else {
-        currentSale.products.push({ id, name, price, quantity });
-    }
-    updateSaleSummary();
-}
-
-function updateSaleSummary() {
-    let summary = document.getElementById("saleSummary");
-    summary.innerHTML = "";
-    currentSale.total = 0;
-
-    currentSale.products.forEach(product => {
-        let subtotal = product.price * product.quantity;
-        currentSale.total += subtotal;
-        summary.innerHTML += `<tr>
-            <td>${product.name}</td>
-            <td>${product.quantity}</td>
-            <td>${subtotal.toFixed(2)}</td>
-            <td><button class='btn btn-danger btn-sm' onclick='removeProductFromSale(${product.id})'>X</button></td>
-        </tr>`;
-    });
-    document.getElementById("totalSale").innerText = currentSale.total.toFixed(2);
-}
-
-function removeProductFromSale(id) {
-    currentSale.products = currentSale.products.filter(p => p.id !== id);
-    updateSaleSummary();
-}
-
-function selectCustomer() {
-    let customerId = document.getElementById("customerSelect").value;
-    currentSale.customer = customerId;
-}
-
-function confirmSale() {
-    if (!currentSale.customer || currentSale.products.length === 0) {
-        alert("Debe seleccionar un cliente y agregar productos");
-        return;
-    }
-    fetch("/sales/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(currentSale)
+    // Abrir modal de venta
+    btnIniciarVenta.addEventListener("click", () => {
+        modalVenta.show()
     })
-        .then(response => response.json())
-        .then(result => {
-            alert("Venta registrada correctamente");
-            toggleSaleForm();
-        })
-        .catch(error => console.error("Error al registrar la venta", error));
-}
 
-function resetSale() {
-    currentSale = { customer: null, products: [], total: 0 };
-    document.getElementById("saleSummary").innerHTML = "";
-    document.getElementById("totalSale").innerText = "0.00";
-}
+    // Cerrar modal de venta
+    btnCerrarModal.addEventListener("click", () => {
+        modalVenta.hide()
+        resetearVenta()
+    })
+
+    // Cancelar venta
+    btnCancelarVenta.addEventListener("click", () => {
+        modalVenta.hide()
+        resetearVenta()
+    })
+
+    // Buscar productos al presionar Enter
+    inputBuscarProducto.addEventListener("keyup", (event) => {
+        if (event.key === "Enter") {
+            buscarProductos()
+        }
+    })
+
+    // Buscar productos
+    btnBuscar.addEventListener("click", () => {
+        buscarProductos()
+    })
+
+    function buscarProductos() {
+        const query = inputBuscarProducto.value.trim()
+        if (query !== "") {
+            // Simulamos la búsqueda con datos de ejemplo
+            // En producción, esto debería hacer un fetch a tu API
+            const productosEncontrados = [
+                { id: 1, nombre: "Laptop HP", precio: 899.99, stock: 10 },
+                { id: 2, nombre: "Monitor LG", precio: 249.99, stock: 15 },
+                { id: 3, nombre: "Teclado Mecánico", precio: 79.99, stock: 20 },
+            ]
+            mostrarResultados(productosEncontrados)
+
+            // Versión con fetch (comentada)
+            /*
+                  fetch(`/products/search?name=${query}`)
+                      .then(response => response.json())
+                      .then(data => mostrarResultados(data))
+                      .catch(error => console.error("Error buscando productos:", error));
+                  */
+        }
+    }
+
+    function mostrarResultados(productos) {
+        listaProductos.innerHTML = ""
+        productos.forEach((producto) => {
+            const fila = document.createElement("tr")
+            fila.innerHTML = `
+                <td>${producto.nombre}</td>
+                <td>$${producto.precio.toFixed(2)}</td>
+                <td>
+                    <div class="input-group input-group-sm" style="width: 120px">
+                        <button class="btn btn-outline-secondary btn-sm decrementar" type="button">-</button>
+                        <input type="number" min="1" max="${producto.stock}" value="1" class="form-control text-center cantidadProducto" 
+                               data-id="${producto.id}" data-precio="${producto.precio}">
+                        <button class="btn btn-outline-secondary btn-sm incrementar" type="button">+</button>
+                    </div>
+                </td>
+                <td>
+                    <button class="btn btn-primary btn-sm agregarProducto" 
+                            data-id="${producto.id}" 
+                            data-nombre="${producto.nombre}" 
+                            data-precio="${producto.precio}">
+                        <i class="bi bi-plus-circle"></i> Agregar
+                    </button>
+                </td>
+            `
+            listaProductos.appendChild(fila)
+        })
+
+        // Agregar eventos a los botones de incrementar/decrementar
+        document.querySelectorAll(".incrementar").forEach((btn) => {
+            btn.addEventListener("click", function () {
+                const input = this.parentNode.querySelector("input")
+                const max = Number.parseInt(input.getAttribute("max"))
+                const value = Number.parseInt(input.value)
+                if (value < max) {
+                    input.value = value + 1
+                }
+            })
+        })
+
+        document.querySelectorAll(".decrementar").forEach((btn) => {
+            btn.addEventListener("click", function () {
+                const input = this.parentNode.querySelector("input")
+                const value = Number.parseInt(input.value)
+                if (value > 1) {
+                    input.value = value - 1
+                }
+            })
+        })
+
+        // Agregar evento a los botones de agregar
+        document.querySelectorAll(".agregarProducto").forEach((btn) => {
+            btn.addEventListener("click", function () {
+                const id = this.getAttribute("data-id")
+                const nombre = this.getAttribute("data-nombre")
+                const precio = Number.parseFloat(this.getAttribute("data-precio"))
+                const cantidad = Number.parseInt(this.closest("tr").querySelector(".cantidadProducto").value)
+
+                agregarProducto(id, nombre, precio, cantidad)
+            })
+        })
+    }
+
+    function agregarProducto(id, nombre, precio, cantidad) {
+        // Verificar si el producto ya está en la lista
+        const productoExistente = productosSeleccionados.find((p) => p.id === id)
+
+        if (productoExistente) {
+            productoExistente.cantidad += cantidad
+        } else {
+            productosSeleccionados.push({ id, nombre, precio, cantidad })
+        }
+
+        actualizarListaSeleccionados()
+        actualizarTotal()
+    }
+
+    function actualizarListaSeleccionados() {
+        listaSeleccionados.innerHTML = ""
+
+        productosSeleccionados.forEach((producto, index) => {
+            const subtotal = producto.precio * producto.cantidad
+            const fila = document.createElement("tr")
+            fila.innerHTML = `
+                <td>${producto.nombre}</td>
+                <td>$${producto.precio.toFixed(2)}</td>
+                <td>${producto.cantidad}</td>
+                <td>$${subtotal.toFixed(2)}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm eliminarProducto" data-index="${index}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            `
+            listaSeleccionados.appendChild(fila)
+        })
+
+        // Agregar evento a los botones de eliminar
+        document.querySelectorAll(".eliminarProducto").forEach((btn) => {
+            btn.addEventListener("click", function () {
+                const index = Number.parseInt(this.getAttribute("data-index"))
+                productosSeleccionados.splice(index, 1)
+                actualizarListaSeleccionados()
+                actualizarTotal()
+            })
+        })
+    }
+
+    function actualizarTotal() {
+        const total = productosSeleccionados.reduce((sum, p) => sum + p.precio * p.cantidad, 0)
+        totalVenta.textContent = total.toFixed(2)
+    }
+
+    function resetearVenta() {
+        productosSeleccionados = []
+        listaProductos.innerHTML = ""
+        listaSeleccionados.innerHTML = ""
+        inputBuscarProducto.value = ""
+        totalVenta.textContent = "0.00"
+        selectCliente.value = ""
+    }
+
+    btnConfirmarVenta.addEventListener("click", () => {
+        if (productosSeleccionados.length === 0) {
+            alert("Debe agregar productos a la venta.")
+            return
+        }
+
+        const clienteId = selectCliente.value
+        if (!clienteId) {
+            alert("Seleccione un cliente.")
+            return
+        }
+
+        const venta = {
+            clienteId,
+            productos: productosSeleccionados,
+        }
+
+        // Simulamos el registro de la venta
+        console.log("Venta a registrar:", venta)
+        alert("¡Venta registrada con éxito!")
+        modalVenta.hide()
+        resetearVenta()
+
+        // Versión con fetch (comentada)
+        /*
+            fetch("/ventas/registrar", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(venta),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert("Venta registrada con éxito!");
+                    modalVenta.hide();
+                    resetearVenta();
+                })
+                .catch(error => console.error("Error registrando venta:", error));
+            */
+    })
+})
+

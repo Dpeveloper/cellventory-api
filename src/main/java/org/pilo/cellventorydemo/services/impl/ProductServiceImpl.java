@@ -1,4 +1,4 @@
-package org.pilo.cellventorydemo.services;
+package org.pilo.cellventorydemo.services.impl;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -6,6 +6,7 @@ import org.pilo.cellventorydemo.entities.Product;
 import org.pilo.cellventorydemo.entities.dtos.ProductDto;
 import org.pilo.cellventorydemo.entities.mappers.ProductMapper;
 import org.pilo.cellventorydemo.repositories.ProductRepository;
+import org.pilo.cellventorydemo.services.ProductService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

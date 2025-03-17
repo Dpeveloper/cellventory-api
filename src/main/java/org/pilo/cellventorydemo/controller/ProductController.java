@@ -1,4 +1,4 @@
-package org.pilo.cellventorydemo;
+package org.pilo.cellventorydemo.controller;
 
 import org.pilo.cellventorydemo.entities.dtos.ProductDto;
 import org.pilo.cellventorydemo.services.ProductService;
