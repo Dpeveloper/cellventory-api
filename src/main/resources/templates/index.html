@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Productos</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body onload="loadProducts()">
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <i class="bi bi-box-seam me-2"></i>
+            Inventario
+        </a>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <h1 class="display-5 fw-bold text-primary-dark mb-0">Gestión de Productos</h1>
+            <p class="text-muted">Administra tu inventario de manera eficiente</p>
+        </div>
+        <div class="col-lg-4 d-flex align-items-center justify-content-lg-end mt-3 mt-lg-0">
+            <button class="btn btn-primary btn-lg" onclick="toggleForm()">
+                <i class="bi bi-plus-circle me-2"></i>Agregar Producto
+            </button>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4 d-none" id="productCard">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0" id="formTitle">Agregar Producto</h5>
+        </div>
+        <div class="card-body">
+            <form id="productForm">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" name="name" class="form-control" placeholder="Nombre del producto" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Categoría</label>
+                        <input type="text" name="category" class="form-control" placeholder="Categoría" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Modelo</label>
+                        <input type="text" name="model" class="form-control" placeholder="Modelo" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Precio de Compra</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" id="purchasePrice" name="purchasePrice" class="form-control" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Precio de Venta</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" id="salePrice" name="salePrice" class="form-control" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Stock</label>
+                        <input type="number" name="stock" class="form-control" placeholder="Cantidad" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Descripción</label>
+                    <textarea name="description" class="form-control" placeholder="Descripción del producto" rows="3"></textarea>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary" onclick="saveProduct()">
+                        <i class="bi bi-save me-2"></i>Guardar
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="toggleForm()">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <div class="row align-items-center">
+                <div class="col-md-8 mb-3 mb-md-0">
+                    <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <i class="bi bi-search"></i>
+                            </span>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Buscar por nombre, categoría o modelo...">
+                        <button class="btn btn-primary" onclick="filterProducts()">Buscar</button>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex justify-content-md-end">
+                    <select class="form-select w-auto" id="categoryFilter" onchange="filterProducts()">
+                        <option value="">Todas las categorías</option>
+                        <!-- Categories will be populated by JS -->
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Categoría</th>
+                        <th>Modelo</th>
+                        <th>Precio Venta</th>
+                        <th>Stock</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody id="productTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted" id="productCount">0 productos</span>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary" id="exportCSV">
+                        <i class="bi bi-file-earmark-excel me-1"></i>Exportar
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="printList">
+                        <i class="bi bi-printer me-1"></i>Imprimir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for product details -->
+<div class="modal fade" id="productDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles del Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="productDetailBody">
+                <!-- Product details will be populated here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="footer mt-5 py-3 bg-light">
+    <div class="container text-center">
+        <span class="text-muted">© 2023 Sistema de Gestión de Inventario</span>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/productManagement.js"></script>
+</body>
+</html>
