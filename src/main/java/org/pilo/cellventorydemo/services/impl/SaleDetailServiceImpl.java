@@ -1,6 +1,5 @@
 package org.pilo.cellventorydemo.services.impl;
 
-import org.pilo.cellventorydemo.entities.SaleDetail;
 import org.pilo.cellventorydemo.entities.dtos.SaleDetailDto;
 import org.pilo.cellventorydemo.entities.mappers.SaleDetailMapper;
 import org.pilo.cellventorydemo.repositories.SaleDetailRepository;
@@ -22,13 +21,6 @@ public class SaleDetailServiceImpl implements SaleDetailService {
     }
 
     @Override
-    public SaleDetailDto save(SaleDetailDto saleDetailDto) {
-        SaleDetail saleDetail = saleDetailMapper.toEntity(saleDetailDto);
-
-        return saleDetailMapper.toDto(saleDetailRepository.save(saleDetail));
-    }
-
-    @Override
     public List<SaleDetailDto> findAll() {
         return saleDetailRepository.findAll().stream()
                 .map(saleDetailMapper::toDto)
@@ -46,5 +38,12 @@ public class SaleDetailServiceImpl implements SaleDetailService {
     public void deleteById(Integer id) {
         if(findById(id) != null)
             saleDetailRepository.deleteById(id);
+    }
+
+    @Override
+    public List<SaleDetailDto> findBySaleId(Integer saleId) {
+        return saleDetailRepository.findBySaleId(saleId).stream()
+                .map(saleDetailMapper::toDto)
+                .toList();
     }
 }

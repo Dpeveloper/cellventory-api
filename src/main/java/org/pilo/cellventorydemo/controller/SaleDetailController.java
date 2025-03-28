@@ -17,12 +17,6 @@ public class SaleDetailController {
         this.saleDetailService = saleDetailService;
     }
 
-    @PostMapping
-    public ResponseEntity<SaleDetailDto> createSaleDetail(@RequestBody SaleDetailDto saleDetailDto) {
-        SaleDetailDto createdSaleDetail = saleDetailService.save(saleDetailDto);
-        return new ResponseEntity<>(createdSaleDetail, HttpStatus.CREATED);
-    }
-
     @GetMapping
     public ResponseEntity<List<SaleDetailDto>> getAllSaleDetails() {
         List<SaleDetailDto> saleDetails = saleDetailService.findAll();
@@ -31,12 +25,8 @@ public class SaleDetailController {
 
     @GetMapping("/{id}")
     public ResponseEntity<SaleDetailDto> getSaleDetailById(@PathVariable Integer id) {
-        try {
-            SaleDetailDto saleDetailDto = saleDetailService.findById(id);
-            return new ResponseEntity<>(saleDetailDto, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        SaleDetailDto saleDetailDto = saleDetailService.findById(id);
+        return new ResponseEntity<>(saleDetailDto, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
@@ -47,5 +37,11 @@ public class SaleDetailController {
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    @GetMapping("/{id}/details")
+    public ResponseEntity<List<SaleDetailDto>> getSaleDetails(@PathVariable Integer id) {
+        List<SaleDetailDto> details = saleDetailService.findBySaleId(id);
+        return new ResponseEntity<>(details, HttpStatus.OK);
     }
 }

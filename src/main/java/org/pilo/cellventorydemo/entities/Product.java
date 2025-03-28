@@ -1,13 +1,17 @@
 package org.pilo.cellventorydemo.entities;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "Products")
+@NoArgsConstructor
+@AllArgsConstructor
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -19,4 +23,8 @@ public class Product {
     private Double salePrice;
     private Integer stock;
     private String description;
+
+    public Product(Integer id){
+        this.id = id;
+    }
 }

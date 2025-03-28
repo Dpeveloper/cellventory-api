@@ -36,17 +36,17 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDto save(ProductDto productDto) {
         if (productDto.id() != null) {
-            throw new IllegalArgumentException("No se debe pasar un ID al guardar un nuevo producto.");
+            throw new IllegalArgumentException("No se puede guardar un nuevo producto con ID existente.");
         }
 
         Product product = productMapper.toEntity(productDto);
 
-        if(productDto.salePrice() == null) {
-            product.setSalePrice(productDto.purchasePrice() + productDto.purchasePrice() * 0.20);
+        if (product.getSalePrice() == null) {
+            product.setSalePrice(product.getPurchasePrice() * 1.20);
         }
 
         return productMapper.toDto(productRepository.save(product));
-   }
+    }
 
     @Override
     public ProductDto update(Integer id, ProductDto productDto) {
@@ -57,7 +57,7 @@ public class ProductServiceImpl implements ProductService {
         product.setCategory(productDto.category());
         product.setModel(productDto.model());
         product.setPurchasePrice(productDto.purchasePrice());
-        product.setSalePrice(productDto.salePrice());
+        product.setSalePrice(productDto.salePrice() != null ? productDto.salePrice() : product.getPurchasePrice() * 1.20);
         product.setStock(productDto.stock());
         product.setDescription(productDto.description());
 

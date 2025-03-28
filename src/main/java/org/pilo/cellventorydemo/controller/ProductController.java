@@ -1,5 +1,6 @@
 package org.pilo.cellventorydemo.controller;
 
+import jakarta.validation.Valid;
 import org.pilo.cellventorydemo.entities.dtos.ProductDto;
 import org.pilo.cellventorydemo.services.ProductService;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import java.util.List;
 @Controller
 @RequestMapping("/products")
 public class ProductController {
+
     private final ProductService productService;
 
     public ProductController(ProductService productService) {
@@ -38,13 +40,13 @@ public class ProductController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<ProductDto> saveProduct(@RequestBody ProductDto product) {
+    public ResponseEntity<ProductDto> saveProduct(@Valid @RequestBody ProductDto product) {
         ProductDto savedProduct = productService.save(product);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProductDto> updateProduct(@PathVariable Integer id, @RequestBody ProductDto productDto) {
+    public ResponseEntity<ProductDto> updateProduct(@PathVariable Integer id, @Valid @RequestBody ProductDto productDto) {
         ProductDto updatedProduct = productService.update(id, productDto);
         return ResponseEntity.ok(updatedProduct);
     }
