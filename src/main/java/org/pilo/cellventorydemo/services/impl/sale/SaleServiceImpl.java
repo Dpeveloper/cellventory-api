@@ -5,7 +5,9 @@ import org.pilo.cellventorydemo.entities.Product;
 import org.pilo.cellventorydemo.entities.Sale;
 import org.pilo.cellventorydemo.entities.SaleDetail;
 import org.pilo.cellventorydemo.entities.dtos.*;
+import org.pilo.cellventorydemo.entities.mappers.SaleDetailMapper;
 import org.pilo.cellventorydemo.entities.mappers.SaleMapper;
+import org.pilo.cellventorydemo.repositories.ProductRepository;
 import org.pilo.cellventorydemo.repositories.SaleRepository;
 import org.pilo.cellventorydemo.services.SaleService;
 import org.springframework.stereotype.Service;
@@ -21,11 +23,13 @@ public class SaleServiceImpl implements SaleService {
     private final SaleRepository saleRepository;
     private final SaleMapper saleMapper;
     private final SaleValidator saleValidator;
+    private final SaleDetailMapper saleDetailMapper;
 
-    public SaleServiceImpl(SaleRepository saleRepository, SaleMapper saleMapper, SaleValidator saleValidator) {
+    public SaleServiceImpl(SaleRepository saleRepository, SaleMapper saleMapper, SaleValidator saleValidator, SaleDetailMapper saleDetailMapper) {
         this.saleRepository = saleRepository;
         this.saleMapper = saleMapper;
         this.saleValidator = saleValidator;
+        this.saleDetailMapper = saleDetailMapper;
     }
 
     @Override
@@ -87,6 +91,19 @@ public class SaleServiceImpl implements SaleService {
 
         Sale saleToSaveEntitie = saleMapper.saveToEntity(saleToSave);
 
+        boolean detailsEquals = sale.getSaleDetailList().stream()
+                .map(saleDetail -> saleDetail.getProduct().getId()) // Obtener IDs de productos actuales
+                .collect(Collectors.toSet()) // Convertir a conjunto para comparación rápida
+                .equals(
+                        saleToSave.saleDetailList().stream()
+                                .map(SaleDetailToSave::productId) // Obtener IDs de productos nuevos
+                                .collect(Collectors.toSet())
+                );
+
+        if (!detailsEquals) {
+            throw new IllegalArgumentException("Los detalles de venta han cambiado. No se permite modificar los productos.");
+        }
+
         saleValidator.validateSaleDetails(saleToSaveEntitie.getSaleDetailList());
 
         // Mapear los nuevos detalles de venta
@@ -96,15 +113,24 @@ public class SaleServiceImpl implements SaleService {
         // Validar y actualizar stock
         saleValidator.validateAndUpdateStock(sale, newDetailsMap);
 
+        double total = sale.getSaleDetailList().stream()
+                .mapToDouble(SaleDetail::getSubTotal).sum();
 
-
+        sale.setClientName(saleToSave.clientName());
+        sale.setStatus(saleToSave.status());
+        sale.setTotal(total);
         return saleMapper.toSaleDto(saleRepository.save(sale));
     }
 
-
     @Override
-    public void deleteById(Integer id) {
-        findById(id);
-        saleRepository.deleteById(id);
+    public SaleDto addDetails(Integer saleId, SaleDetailToSave saleDetailToSave) {
+        Sale sale = saleRepository.findById(saleId)
+                .orElseThrow(() -> new RuntimeException("Venta no encontrada."));
+
+        SaleDetail saleDetail = saleDetailMapper.saveToEntity(saleDetailToSave);
+
+        saleValidator.addSaleDetailValidator(sale, saleDetail);
+
+        return saleMapper.toSaleDto(saleRepository.save(sale));
     }
 }

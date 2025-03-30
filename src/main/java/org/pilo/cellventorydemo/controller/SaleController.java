@@ -43,10 +43,4 @@ public class SaleController {
         SaleDto updatedSale = saleService.update(id,saleToSave);
         return new ResponseEntity<>(updatedSale, HttpStatus.OK);
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSale(@PathVariable Integer id) {
-        saleService.deleteById(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
 }

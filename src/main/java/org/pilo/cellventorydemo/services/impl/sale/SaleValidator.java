@@ -100,7 +100,25 @@ public class SaleValidator {
 
             // Actualizar la cantidad en el detalle
             oldDetail.setQuantity(newQuantity);
+            oldDetail.setSubTotal(oldDetail.getQuantity() * product.getSalePrice());
         }
+    }
+
+    public void addSaleDetailValidator(Sale sale, SaleDetail saleDetail) {
+
+        Product product = productRepository.findById(saleDetail.getProduct().getId())
+                .orElseThrow(EntityNotFoundException::new);
+
+        product.setStock(product.getStock() - saleDetail.getQuantity());
+        if (product.getStock() < 0)
+            throw new RuntimeException("No hay suficientes productos");
+
+        productRepository.save(product);
+
+        saleDetail.setPrice(product.getSalePrice());
+        saleDetail.setSubTotal(saleDetail.getQuantity() * product.getSalePrice());
+        saleDetail.setProduct(product);
+        sale.getSaleDetailList().add(saleDetail);
     }
 }
 

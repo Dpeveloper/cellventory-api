@@ -1,5 +1,6 @@
 package org.pilo.cellventorydemo.services;
 
+import org.pilo.cellventorydemo.entities.dtos.SaleDetailToSave;
 import org.pilo.cellventorydemo.entities.dtos.SaleDto;
 import org.pilo.cellventorydemo.entities.dtos.SaleToSave;
 import org.springframework.stereotype.Service;
@@ -15,5 +16,5 @@ public interface SaleService {
 
     SaleDto update(Integer id, SaleToSave saleToSave);
 
-    void deleteById(Integer id);
+    SaleDto addDetails(Integer saleId, SaleDetailToSave saleDetailToSave);
 }
